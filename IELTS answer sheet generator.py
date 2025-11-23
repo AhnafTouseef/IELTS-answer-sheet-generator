@@ -222,7 +222,7 @@ h2 { text-align:center; margin-bottom:14px; }
 .qgrid { /* we'll inject column-major content manually */ column-count:2; column-gap:18px; margin-top:10px; }
 .qbox { display:block; margin-bottom:8px; break-inside:avoid; }
 .qbox b { display:inline-block; width:28px; }
-.answer, .correct-answer { width:120px; height:22px; margin-left:6px; border:1px solid #000; padding:3px; box-sizing:border-box; vertical-align:middle; }
+.answer, .correct-answer { width:160px; height:22px; margin-left:6px; border:1px solid #000; padding:3px; box-sizing:border-box; vertical-align:middle; }
 .checkbox { display:none; width:20px; height:20px; margin-left:8px; vertical-align:middle; }
 .correct-answer { display:none; } /* hidden until evaluation enabled and unchecked */
 button { margin-right:8px; padding:6px 12px; font-size:13px; cursor:pointer; border-radius:4px; }
@@ -234,6 +234,17 @@ button { margin-right:8px; padding:6px 12px; font-size:13px; cursor:pointer; bor
     .checkbox { display:inline-block; }
     .correct-answer { display:inline-block; }
     #printBtn { display:none; }
+    select {
+        background: transparent !important;
+        font-weight: bold;
+        /* Hide the arrow */
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+
+        background-image: none !important;
+        padding-right: 0 !important;
+    }
 }
 </style></head><body>"""
 
@@ -290,7 +301,7 @@ button { margin-right:8px; padding:6px 12px; font-size:13px; cursor:pointer; bor
                 correct_html = answer_html.replace('class="answer"', 'class="correct-answer"')
                 # For input text placeholders
                 if 'type="text"' in correct_html and 'placeholder' not in correct_html:
-                    correct_html = correct_html.replace('type="text"', 'type="text" placeholder="Correct answer"')
+                    correct_html = correct_html.replace('type="text"', 'type="text" placeholder=" "')
 
                 # Construct the qbox: primary answer, a hidden checkbox (for teacher), and the hidden correct-answer clone
                 q_html = f'<div class="qbox"><b>{current_q}.</b>{answer_html}'
@@ -310,44 +321,77 @@ button { margin-right:8px; padding:6px 12px; font-size:13px; cursor:pointer; bor
         # JavaScript: toggle evaluation mode, checkbox handler, updateScore
         js = r"""
 <script>
+
 let evalMode = false;
+
 function toggleEvaluation(){
     evalMode = !evalMode;
+
     // toggle label
-    document.getElementById('evalToggle').innerText = evalMode ? 'Disable Evaluation Mode' : 'Enable Evaluation Mode';
+    document.getElementById('evalToggle').innerText =
+        evalMode ? 'Disable Evaluation Mode' : 'Enable Evaluation Mode';
+
     // show/hide checkboxes
     document.querySelectorAll('.checkbox').forEach(cb=>{
         cb.style.display = evalMode ? 'inline-block' : 'none';
-        // ensure styling inline-block for consistent spacing
     });
+
     // show/hide correct-answer clones depending on checkbox state
     document.querySelectorAll('.correct-answer').forEach(ca=>{
-        // corresponding checkbox is previousElementSibling of the correct-answer in our markup
         let chk = ca.previousElementSibling;
-        if(!chk) { ca.style.display = 'none'; return; }
-        if(!evalMode){ ca.style.display = 'none'; return; }
-        // if checkbox is checked => hide correct answer; else show
+        if(!chk){ 
+            ca.style.display = 'none'; 
+            return; 
+        }
+        if(!evalMode){ 
+            ca.style.display = 'none'; 
+            return; 
+        }
         ca.style.display = chk.checked ? 'none' : 'inline-block';
     });
+
     updateScore();
 }
+
+
 function onCheckboxChange(qid){
     let chk = document.getElementById('chk'+qid);
     let ca = chk.nextElementSibling;
+
     if(!ca) return;
+
     if(chk.checked){
         ca.style.display = 'none';
     } else {
-        // only show correct input if evalMode active
         if(evalMode) ca.style.display = 'inline-block';
     }
+
     updateScore();
 }
+
+
 function updateScore(){
     let score = document.querySelectorAll('.checkbox:checked').length;
     document.getElementById('totalscore').value = score;
 }
+
+
+
+/* ============================================================
+   ALWAYS WARN USER BEFORE CLOSING THE TAB
+   (Triggers when page is being closed / refreshed)
+   ============================================================ */
+
+let preventCloseWarning = true;
+
+window.addEventListener("beforeunload", function (e) {
+    if (!preventCloseWarning) return;
+    e.preventDefault();
+    e.returnValue = "";
+});
+
 </script>
+
 """
         html += js
         html += "</body></html>"
