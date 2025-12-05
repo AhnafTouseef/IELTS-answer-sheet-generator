@@ -217,6 +217,55 @@ class IELTSGenerator:
         # CSS: eval elements hidden by default; toggle button hidden in print
         html_head = """<html><head><meta charset="UTF-8"><style>
 body { font-family: Arial, sans-serif; padding:20px; background-color:#fff; color:#000; }
+/* ============================
+   DARK MODE THEME
+   ============================ */
+body.dark {
+    background: #1e1e1e;
+    color: #f0f0f0;
+}
+
+body.dark .question-number {
+    color: #fff;
+}
+
+body.dark input[type="text"],
+body.dark select {
+    background: #333;
+    color: #fff;
+    border-color: #888;
+}
+
+body.dark .correct-answer {
+    background: #333 !important;
+    color: #fff !important;
+}
+
+body.dark button {
+    background: #444;
+    color: #fff;
+    border-color: #666;
+}
+
+body.dark button:hover {
+    background: #555;
+}
+
+body.dark .checkbox {
+    accent-color: #fff;
+}
+
+/* MAKE SURE DARK MODE DOES NOT APPLY TO PRINT */
+@media print {
+    body.dark {
+        background: white !important;
+        color: black !important;
+    }
+    #darkToggle {
+        display: none !important;
+    }
+}
+
 h2 { text-align:center; margin-bottom:14px; }
 .section-header { font-weight:bold; margin-top:18px; border-bottom:1px solid #000; padding-bottom:5px; }
 .qgrid { /* we'll inject column-major content manually */ column-count:2; column-gap:18px; margin-top:10px; }
@@ -254,6 +303,7 @@ button { margin-right:8px; padding:6px 12px; font-size:13px; cursor:pointer; bor
 <div style="margin-bottom:10px;">
 <button id="printBtn" onclick="window.print()">Print / Save as PDF</button>
 <button id="evalToggle" onclick="toggleEvaluation()">Enable Evaluation Mode</button>
+<button id="darkToggle" onclick="toggleDarkMode()">Dark Mode</button>
 <span style="margin-left:14px;">Model Number: <input type="text" id="model" style="width:80px;"></span>
 <span style="margin-left:14px;">Total Score: <input type="text" id="totalscore" style="width:60px;" readonly></span>
 </div>
@@ -375,6 +425,16 @@ function updateScore(){
     document.getElementById('totalscore').value = score;
 }
 
+/* ============================
+   DARK MODE TOGGLE
+   ============================ */
+function toggleDarkMode() {
+    document.body.classList.toggle('dark');
+
+    // update button text
+    document.getElementById("darkToggle").innerText =
+        document.body.classList.contains('dark') ? "Light Mode" : "Dark Mode";
+}
 
 
 /* ============================================================
